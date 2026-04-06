@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0a1117" />
+  <title>Solvency Treasure Hunt 2026</title>
+  <style>
+    :root {
+      --bg: #07111d;
+      --panel: rgba(8, 15, 28, 0.78);
+      --border: rgba(255,255,255,0.14);
+      --text: #eef6ff;
+      --muted: #aac0d7;
+      --accent: #79d8ff;
+      --danger: #ff8f8f;
+      --success: #98ffb4;
+      --shadow: 0 20px 60px rgba(0,0,0,0.45);
+    }
+
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      overflow: hidden;
+    }
+
+    .screen {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    #loginScreen {
+      display: grid;
+      place-items: center;
+      background:
+        radial-gradient(circle at 20% 20%, rgba(121,216,255,0.12), transparent 22%),
+        radial-gradient(circle at 80% 15%, rgba(255,230,113,0.10), transparent 20%),
+        linear-gradient(135deg, #040812 0%, #0a1730 45%, #09111d 100%);
+      padding: 20px;
+    }
+
+    .login-card {
+      width: min(92vw, 420px);
+      padding: 28px;
+      border-radius: 24px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    .brand {
+      font-size: clamp(1.2rem, 2vw, 1.5rem);
+      font-weight: 800;
+      letter-spacing: 0.03em;
+      margin: 0 0 6px;
+    }
+
+    .subtitle {
+      margin: 0 0 22px;
+      color: var(--muted);
+      line-height: 1.5;
+      font-size: 0.96rem;
+    }
+
+    .field { margin-bottom: 16px; }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 0.95rem;
+      color: #dbe9f6;
+      font-weight: 600;
+    }
+
+    input {
+      width: 100%;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.06);
+      color: var(--text);
+      border-radius: 14px;
+      padding: 14px 16px;
+      font-size: 1rem;
+      outline: none;
+      transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+    }
+
+    input:focus {
+      border-color: var(--accent);
+      background: rgba(255,255,255,0.08);
+      transform: translateY(-1px);
+    }
+
+    .btn {
+      width: 100%;
+      border: none;
+      border-radius: 14px;
+      padding: 14px 16px;
+      font-size: 1rem;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      color: #03111b;
+      background: linear-gradient(135deg, var(--accent), #a0ecff);
+      cursor: pointer;
+      transition: transform 0.2s ease, filter 0.2s ease;
+      touch-action: manipulation;
+    }
+
+    .btn:hover, .btn:focus-visible {
+      transform: translateY(-1px);
+      filter: brightness(1.06);
+    }
+
+    .error {
+      min-height: 22px;
+      margin-top: 12px;
+      color: var(--danger);
+      font-size: 0.92rem;
+      font-weight: 600;
+    }
+
+    .hint {
+      margin-top: 16px;
+      color: rgba(255,255,255,0.45);
+      font-size: 0.8rem;
+      text-align: center;
+    }
+
+    #treasureScreen {
+      display: none;
+      background:
+        radial-gradient(circle at 78% 18%, rgba(255,236,150,0.18), transparent 18%),
+        linear-gradient(180deg, #0a1117 0%, #0e151d 38%, #111821 100%);
+      overflow: hidden;
+    }
+
+    .ambient-glow,
+    .speed-lines,
+    .car-wrap,
+    .coords-wrap {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .ambient-glow::before,
+    .ambient-glow::after {
+      content: "";
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(20px);
+      opacity: 0.75;
+    }
+
+    .ambient-glow::before {
+      width: 28vmin;
+      height: 28vmin;
+      top: 10%;
+      right: 10%;
+      background: radial-gradient(circle, rgba(255,236,150,0.8), rgba(255,236,150,0.12) 55%, transparent 70%);
+      animation: pulseGlow 4.8s ease-in-out infinite;
+    }
+
+    .ambient-glow::after {
+      width: 42vmin;
+      height: 18vmin;
+      bottom: 10%;
+      left: 8%;
+      background: radial-gradient(circle, rgba(121,216,255,0.18), transparent 70%);
+      filter: blur(26px);
+    }
+
+    .speed-lines::before,
+    .speed-lines::after {
+      content: "";
+      position: absolute;
+      left: -20%;
+      width: 140%;
+      height: 2px;
+      background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.08) 25%, rgba(255,255,255,0.3) 50%, transparent 75%);
+      filter: blur(1px);
+      opacity: 0.75;
+      animation: streak 1.8s linear infinite;
+    }
+
+    .speed-lines::before { top: 32%; }
+    .speed-lines::after {
+      top: 66%;
+      animation-duration: 2.4s;
+      opacity: 0.45;
+    }
+
+    .coords-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      z-index: 5;
+    }
+
+    .coords {
+      max-width: min(92vw, 900px);
+      padding: 18px 24px;
+      border-radius: 24px;
+      background: rgba(5, 12, 22, 0.46);
+      border: 1px solid rgba(255,255,255,0.16);
+      box-shadow: 0 18px 48px rgba(0,0,0,0.35);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      text-align: center;
+    }
+
+    .coords .label {
+      font-size: clamp(0.9rem, 2vw, 1rem);
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: #d9edf8;
+      opacity: 0.92;
+      margin-bottom: 10px;
+      font-weight: 800;
+    }
+
+    .coords .value {
+      font-size: clamp(1.4rem, 4vw, 2.8rem);
+      line-height: 1.25;
+      font-weight: 900;
+      color: #fff8b8;
+      text-shadow: 0 0 18px rgba(255,230,113,0.45);
+      word-break: break-word;
+    }
+
+    .coords .sub {
+      margin-top: 10px;
+      color: #d5e8f6;
+      font-size: clamp(0.88rem, 2vw, 1rem);
+      letter-spacing: 0.03em;
+    }
+
+    .car-wrap {
+      z-index: 3;
+      overflow: hidden;
+    }
+
+    .car {
+      position: absolute;
+      bottom: 14%;
+      left: -52vw;
+      width: min(72vw, 720px);
+      aspect-ratio: 3.2 / 1.1;
+      animation: arrive 6.5s cubic-bezier(.2,.78,.2,1) infinite;
+      filter: drop-shadow(0 18px 30px rgba(0,0,0,0.62));
+    }
+
+    .car svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .headlight {
+      animation: flicker 1.4s ease-in-out infinite;
+      transform-origin: center;
+    }
+
+    .road-sheen {
+      position: absolute;
+      bottom: 10%;
+      left: 0;
+      right: 0;
+      height: 16%;
+      background:
+        linear-gradient(to top, rgba(0,0,0,0.45), transparent 70%),
+        linear-gradient(to right, transparent 0%, rgba(255,255,255,0.05) 30%, rgba(255,255,255,0.02) 60%, transparent 100%);
+      opacity: 0.9;
+    }
+
+    .logout {
+      position: absolute;
+      top: max(14px, env(safe-area-inset-top));
+      right: 14px;
+      z-index: 6;
+      border: 1px solid rgba(255,255,255,0.16);
+      background: rgba(10, 18, 28, 0.55);
+      color: var(--text);
+      padding: 10px 14px;
+      border-radius: 999px;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      cursor: pointer;
+      font-weight: 700;
+      pointer-events: auto;
+    }
+
+    .corner-badge {
+      position: absolute;
+      left: 14px;
+      top: max(14px, env(safe-area-inset-top));
+      z-index: 6;
+      padding: 10px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.16);
+      background: rgba(10, 18, 28, 0.48);
+      color: #ebf7ff;
+      font-size: 0.88rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+
+    @keyframes arrive {
+      0%   { transform: translateX(0) scale(0.9); opacity: 0; }
+      10%  { opacity: 1; }
+      42%  { transform: translateX(72vw) scale(1.02); opacity: 1; }
+      56%  { transform: translateX(78vw) scale(1.03); opacity: 1; }
+      70%  { transform: translateX(83vw) scale(1.03); opacity: 1; }
+      100% { transform: translateX(130vw) scale(1.05); opacity: 0; }
+    }
+
+    @keyframes flicker {
+      0%, 100% { opacity: 0.7; filter: blur(1px); }
+      50% { opacity: 1; filter: blur(0); }
+    }
+
+    @keyframes streak {
+      0% { transform: translateX(-8%); opacity: 0; }
+      15% { opacity: 0.6; }
+      100% { transform: translateX(8%); opacity: 0; }
+    }
+
+    @keyframes pulseGlow {
+      0%, 100% { transform: scale(1); opacity: 0.72; }
+      50% { transform: scale(1.06); opacity: 0.92; }
+    }
+
+    @media (max-width: 768px) {
+      .login-card {
+        padding: 22px;
+        border-radius: 20px;
+      }
+
+      .coords {
+        padding: 16px;
+        border-radius: 20px;
+      }
+
+      .car {
+        width: 98vw;
+        bottom: 16%;
+        left: -68vw;
+      }
+
+      @keyframes arrive {
+        0%   { transform: translateX(0) scale(0.9); opacity: 0; }
+        10%  { opacity: 1; }
+        48%  { transform: translateX(86vw) scale(1.02); opacity: 1; }
+        66%  { transform: translateX(94vw) scale(1.03); opacity: 1; }
+        100% { transform: translateX(155vw) scale(1.05); opacity: 0; }
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main id="loginScreen" class="screen" aria-label="Login screen">
+    <section class="login-card" aria-labelledby="loginTitle">
+      <h1 class="brand" id="loginTitle">solvency treasure hunt 2026</h1>
+      <p class="subtitle">Enter the correct username and password to access the hidden coordinates.</p>
+
+      <form id="loginForm" novalidate>
+        <div class="field">
+          <label for="username">Username</label>
+          <input id="username" name="username" type="text" autocomplete="username" placeholder="Enter username" required />
+        </div>
+
+        <div class="field">
+          <label for="password">Password</label>
+          <input id="password" name="password" type="password" autocomplete="current-password" placeholder="Enter password" required />
+        </div>
+
+        <button class="btn" type="submit">Enter</button>
+        <div class="error" id="errorMessage" aria-live="polite"></div>
+      </form>
+
+      <div class="hint">This is a puzzle gate, not secure authentication.</div>
+    </section>
+  </main>
+
+  <section id="treasureScreen" class="screen" aria-label="Treasure location screen">
+    <div class="ambient-glow"></div>
+    <div class="speed-lines"></div>
+    <div class="road-sheen"></div>
+
+    <div class="corner-badge">Treasure Hunt 2026</div>
+    <button class="logout" id="logoutBtn" type="button" aria-label="Log out">Log out</button>
+
+    <div class="car-wrap" aria-hidden="true">
+      <div class="car">
+        <svg viewBox="0 0 820 280" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Stylized Lotus Elise-inspired sports car animation">
+          <defs>
+            <linearGradient id="carPaint" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#b7ff37"/>
+              <stop offset="45%" stop-color="#68d400"/>
+              <stop offset="100%" stop-color="#244f00"/>
+            </linearGradient>
+            <linearGradient id="glass" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#dff8ff" stop-opacity="0.95"/>
+              <stop offset="100%" stop-color="#7ed0f2" stop-opacity="0.35"/>
+            </linearGradient>
+            <radialGradient id="lightBeam" cx="0" cy="0.5" r="1">
+              <stop offset="0%" stop-color="#fff9bf" stop-opacity="0.95"/>
+              <stop offset="55%" stop-color="#ffe671" stop-opacity="0.35"/>
+              <stop offset="100%" stop-color="#ffe671" stop-opacity="0"/>
+            </radialGradient>
+          </defs>
+
+          <ellipse cx="240" cy="242" rx="74" ry="18" fill="rgba(0,0,0,0.28)"/>
+          <ellipse cx="601" cy="242" rx="78" ry="18" fill="rgba(0,0,0,0.28)"/>
+          <ellipse cx="400" cy="248" rx="290" ry="24" fill="rgba(0,0,0,0.18)"/>
+
+          <path d="M123 185 C148 163, 212 133, 277 122 C325 114, 409 108, 469 111 C528 114, 593 124, 636 142 C670 156, 711 176, 722 194 L741 198 C761 201, 775 208, 776 220 L776 227 L751 228 C742 230, 731 226, 724 218 C714 206, 697 199, 681 198 L154 198 C140 198, 129 193, 123 185Z" fill="url(#carPaint)" stroke="rgba(255,255,255,0.18)" stroke-width="4"/>
+          <path d="M248 127 C300 95, 405 92, 483 98 C542 102, 593 115, 626 138 L580 141 C528 142, 446 144, 356 148 L215 153 C223 144, 234 135, 248 127Z" fill="url(#glass)" opacity="0.92"/>
+          <path d="M362 110 C394 104, 448 104, 481 109" stroke="rgba(255,255,255,0.35)" stroke-width="4" fill="none"/>
+          <path d="M516 110 C561 114, 594 123, 620 140" stroke="rgba(255,255,255,0.2)" stroke-width="3" fill="none"/>
+          <path d="M695 180 C719 180, 741 187, 755 199 C733 206, 705 209, 680 206 Z" fill="#d7ffe0" opacity="0.75"/>
+          <path class="headlight" d="M747 198 C792 181, 818 175, 820 178 C813 191, 791 211, 738 218 Z" fill="url(#lightBeam)"/>
+          <circle cx="242" cy="205" r="48" fill="#161c20"/>
+          <circle cx="242" cy="205" r="30" fill="#737d87"/>
+          <circle cx="242" cy="205" r="15" fill="#353b40"/>
+          <circle cx="603" cy="205" r="52" fill="#161c20"/>
+          <circle cx="603" cy="205" r="33" fill="#737d87"/>
+          <circle cx="603" cy="205" r="16" fill="#353b40"/>
+          <path d="M150 183 C164 178, 179 177, 197 177" stroke="rgba(255,255,255,0.34)" stroke-width="4" stroke-linecap="round"/>
+          <path d="M320 190 C431 185, 584 184, 680 190" stroke="rgba(0,0,0,0.22)" stroke-width="5" stroke-linecap="round"/>
+          <path d="M121 182 C123 196, 131 202, 149 201" stroke="rgba(0,0,0,0.28)" stroke-width="4" stroke-linecap="round"/>
+          <path d="M690 180 C701 182, 709 187, 714 194" stroke="rgba(0,0,0,0.25)" stroke-width="4" stroke-linecap="round"/>
+        </svg>
+      </div>
+    </div>
+
+    <div class="coords-wrap">
+      <div class="coords">
+        <div class="label">Highlighted Coordinates</div>
+        <div class="value">N47,4998855, E19,0659131</div>
+        <div class="sub">Destination unlocked</div>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    const VALID_USERNAME = 'xtreasurehunterx';
+    const VALID_PASSWORD = 'wefounditnextnextnext';
+
+    const loginScreen = document.getElementById('loginScreen');
+    const treasureScreen = document.getElementById('treasureScreen');
+    const loginForm = document.getElementById('loginForm');
+    const errorMessage = document.getElementById('errorMessage');
+    const usernameInput = document.getElementById('username');
+    const passwordInput = document.getElementById('password');
+    const logoutBtn = document.getElementById('logoutBtn');
+
+    function showTreasure() {
+      loginScreen.style.display = 'none';
+      treasureScreen.style.display = 'block';
+      document.title = 'Treasure Unlocked';
+    }
+
+    function showLogin() {
+      treasureScreen.style.display = 'none';
+      loginScreen.style.display = 'grid';
+      loginForm.reset();
+      errorMessage.textContent = '';
+      document.title = 'Solvency Treasure Hunt 2026';
+      usernameInput.focus();
+    }
+
+    loginForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const username = usernameInput.value.trim();
+      const password = passwordInput.value;
+
+      if (username === VALID_USERNAME && password === VALID_PASSWORD) {
+        errorMessage.style.color = 'var(--success)';
+        errorMessage.textContent = 'Access granted.';
+        setTimeout(() => {
+          errorMessage.textContent = '';
+          errorMessage.style.color = 'var(--danger)';
+          showTreasure();
+        }, 300);
+      } else {
+        errorMessage.style.color = 'var(--danger)';
+        errorMessage.textContent = 'Incorrect username or password.';
+      }
+    });
+
+    logoutBtn.addEventListener('click', showLogin);
+    usernameInput.focus();
+  </script>
+</body>
+</html>
